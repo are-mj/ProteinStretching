@@ -67,7 +67,7 @@ function [k,force,dx,Fdot,shift] = analyse_stretch(s,plotting)
   shift = NaN;
 
 % Make sure x>0 and f both increase or decrease together
-  s.x = max(s.x)-s.x;
+  s.x = s.x - min(s.x);
   
 % Change sign of x and f for refolding stretches
 % This lets us use the same algorithm for bot unfolding and refolding

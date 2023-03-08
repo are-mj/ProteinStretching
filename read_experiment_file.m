@@ -19,15 +19,17 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   
   cps = 4000;  % CycleCounts per second
 
-  file = strrep(filename,'\','/');
-  if numel(regexp(file,'\/'))<2  % Short form of filename ('<date>/xx.txt')
-    file_full = strrep(char(fullfile(datafolder,filename)),'\','/');
-    filename_slashes = regexp(file_full,'\/');  % Position of '/' in string file
-    file = string(file_full(filename_slashes(end-1)+1:end));
+  filename = strrep(filename,'\','/');
+  filename_slashes = regexp(filename,'\/');  % Position of '/' in string file
+  if numel(filename_slashes)<2  % Short form of filename ('<date>/xx.txt')
+    % Add full path:
+    filename = strrep(char(fullfile(datafolder,filename)),'\','/');
+    filename_slashes = regexp(filename,'\/');  % Position of '/' in string file
   end
+  file = string(filename(filename_slashes(end-1)+1:end));
 
   % Read file
-  fid = fopen(file);
+  fid = fopen(filename);
   if fid == -1
       error('File %s not found',file)
   end
