@@ -1,5 +1,6 @@
 function s = extract_stretch(filename,t,plotting)
-% Extract one tretch containing time t from measurement text file
+% Extract one stretch containing time t from measurement text file
+%  You may zoom in the plot from analyse_file.m to select a time
 % Inputs:
 %  file:     data file <xx>.txt.  Include the full path if the file is not
 %            in the current folder
