@@ -6,7 +6,7 @@
   show_mean_xx0 = 0;
   try
     file = get(gca).Title.String;
-    [shortname,bead,date,t0,f0,xx0,T] = read_experiment_file(file);
+    [file,t0,f0,xx0,T] = read_experiment_file(file);
     x0 = mean(xx0,2);
     x0 = -x0 + max(x0);  % Make sure x increases during stretching 
     xx0 = -xx0+ max(xx0);
