@@ -16,7 +16,13 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   %   for compatibility with UNix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
-  
+  % Version 3: 2023-02-24: Added error message if called with no arguments
+  %    - Corrected typo in line 47 
+
+  if nargin < 1
+    error('Missing input argument: filename')
+  end
+
   cps = 4000;  % CycleCounts per second
 
   filename = strrep(filename,'\','/');
@@ -31,7 +37,7 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   % Read file
   fid = fopen(filename);
   if fid == -1
-      error('File %s not found',file)
+      error('File %s not found',filename)
   end
   % First line gives experiment date. THis is no longer used
   try
@@ -44,7 +50,7 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
      parts = strsplit(file,'/');
      date = datetime(parts{1},'inputformat','MMddyyyy');
     catch
-      date = datetaime('01-Jan-2020');  % Unknown date
+      date = datetime('01-Jan-2020');  % Unknown date
     end
   end
   % Line 2 gives column headers
