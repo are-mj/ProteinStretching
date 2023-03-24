@@ -13,10 +13,14 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
 %
 % Version 1.1 2023-02-25
 % Are Mjaavatten (are@mjaavatten.com)
+% Version 1.2 2023-03-24: Added error message if called with no arguments
 
+  if nargin < 1
+    error('Missing input argument: filename')
+  end
   if nargin <2
     plotting = 0;  % No plotting unless specified
-  end
+  end    
 
   [Filename,time0,f0,xx0,T] = read_experiment_file(filename);  
   x0 = mean(xx0,2);
