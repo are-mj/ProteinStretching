@@ -99,17 +99,23 @@ function s = extract_stretch(filename,t,plotting)
   s.file = filename;
   if plotting
     figure;
-    subplot(211);plot(s.t,s.f);
+    subplot(221);plot(s.t,s.f);
     xlabel('time (s)')
     ylabel('Force (pN)')
-    subplot(212);plot(s.f)
+    subplot(223);plot(s.f)
     xlabel('index')
     ylabel('Force (pN)')
+
+    subplot(222);
+    plot_f_x(s.f,s.x)
+    xlabel('x (nm)')
     if k>0
-      subplot(211),hold on;
+      subplot(221),hold on;
       plot(s.t(k),s.f(k),'.r','MarkerSize',10);
-      subplot(212),hold on;
+      subplot(223),hold on;
       plot(k,s.f(k),'.r','MarkerSize',10); 
+      subplot(222),hold on;
+      plot(s.x(k),s.f(k),'.r','MarkerSize',10);
     end
   end
 end
