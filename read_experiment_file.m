@@ -12,32 +12,29 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
 %    xx  : Two column extent array from A_dist_y and B_dist_y (nm)
 %    T   : Temperauser if this is coded in the Status column
 
+  % Version 2023-05-07: Allows more flexible file names.  Use full path if
+  %    filenames do not conform to <datafolder>/date/<xx>.txt
   % Version 2023-01-23: Translate all backslashes in file path to slashes
   %   for compatibility with UNix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
-  % Version 3: 2023-02-24: Added error message if called with no arguments
-  %    - Corrected typo in line 47 
-
-  if nargin < 1
-    error('Missing input argument: filename')
-  end
-
+  
   cps = 4000;  % CycleCounts per second
 
-  filename = strrep(filename,'\','/');
-  filename_slashes = regexp(filename,'\/');  % Position of '/' in string file
-  if numel(filename_slashes)<2  % Short form of filename ('<date>/xx.txt')
-    % Add full path:
-    filename = strrep(char(fullfile(datafolder,filename)),'\','/');
-    filename_slashes = regexp(filename,'\/');  % Position of '/' in string file
+  file = strrep(filename,'\','/');
+  if numel(regexp(file,'\/'))<2  % Short form of filename ('<date>/xx.txt')
+    file_full = fullfile(datafolder,file);
+  else
+    file_full = filename;
   end
-  file = string(filename(filename_slashes(end-1)+1:end));
+  file_full = strrep(char(file_full),'\','/');
+  filename_slashes = regexp(file_full,'\/');  % Position of '/' in string file
+  file = string(file_full(filename_slashes(end-1)+1:end));  % short file name
 
   % Read file
-  fid = fopen(filename);
+  fid = fopen(file_full);
   if fid == -1
-      error('File %s not found',filename)
+      error('File %s not found',file)
   end
   % First line gives experiment date. THis is no longer used
   try
@@ -50,7 +47,7 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
      parts = strsplit(file,'/');
      date = datetime(parts{1},'inputformat','MMddyyyy');
     catch
-      date = datetime('01-Jan-2020');  % Unknown date
+      date = datetaime('01-Jan-2020');  % Unknown date
     end
   end
   % Line 2 gives column headers
