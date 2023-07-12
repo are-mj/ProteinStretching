@@ -1,4 +1,4 @@
-function [k,force,dx,Fdot,shift] = analyse_stretch(s,plotting)
+function [k,force,dx,Fdot,shift,pullingspeed] = analyse_stretch(s,plotting)
 % Find transition point and distance in a unfolding or refolding stretch
 % Inputs;:
 %  s:  input struct with fields:
@@ -20,14 +20,15 @@ function [k,force,dx,Fdot,shift] = analyse_stretch(s,plotting)
 %    https://www.mathworks.com/matlabcentral/fileexchange/16997-movingslope
 %    MATLAB Central File Exchange. Retrieved October 2, 2022.
 
-% Version 2.9
+% Version 2.10
 % Author: Are Mjaavatten (are@mjaavatten.com)
-% Date:  2023-02-24
+% Date:  2023-07-06
 
 % Change history
 % v 2.8:  Extra output: shift
 %         No rounding of recovery_ix.  Avoids spurious discretization of dx
 % v 2.9   Restructured to reflect analyse_stretch_demo.mlx
+% v 2.10  Added ouput: pullingspeed
 
   if nargin < 2
     plotting = false;
@@ -65,6 +66,7 @@ function [k,force,dx,Fdot,shift] = analyse_stretch(s,plotting)
   dx = NaN;
   Fdot = NaN;
   shift = NaN;
+  pullingspeed = NaN;
 
 % Make sure x>0 and f both increase or decrease together
   s.x = s.x - min(s.x);
@@ -93,6 +95,7 @@ function [k,force,dx,Fdot,shift] = analyse_stretch(s,plotting)
   stopmin = find(f(nf) - f > dfend,1,'last');
   stop = min([stopmin,stopslope,nf]);
   validrange = start:stop;
+  pullingspeed = abs((s.x(stop)-s.x(start))/(s.t(stop)-s.t(start)));
 
 %% Find transitions (unfolding or refolding events)
 

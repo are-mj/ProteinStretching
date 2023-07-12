@@ -14,6 +14,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
 % Version 1.1 2023-02-25
 % Are Mjaavatten (are@mjaavatten.com)
 % Version 1.2 2023-03-24: Added error message if called with no arguments
+% Vesrion 1.3 2023-07-06: Added column 'Pullingspeed' to Tu, Tr
 
   if nargin < 1
     error('Missing input argument: filename')
@@ -32,8 +33,8 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
   end 
   n_parts = size(r,1);  % Number of parts to be analysed
 
-  Tu = cell2table(cell(0,8),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Temperature','Lineno'});
-  Tr = cell2table(cell(0,8),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Temperature','Lineno'});
+  Tu = cell2table(cell(0,9),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Pullingspeed','Temperature','Lineno'});
+  Tr = cell2table(cell(0,9),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Pullingspeed','Temperature','Lineno'});
 
   if plotting 
     % Show full time series in grey color as background:
@@ -77,7 +78,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
       if isempty(s.f)
         continue
       end
-      [k1,Force,Deltax,Fdot,Forceshift] = analyse_stretch(s); 
+      [k1,Force,Deltax,Fdot,Forceshift,Pullingspeed] = analyse_stretch(s); 
       if k1 < 1
         continue;
       end
@@ -86,10 +87,10 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
       Lineno = index_range(index)+4;   % Line number in file
       Temperature = T(Lineno);
       if sign(s.f(end)-s.f(1)) == 1
-        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Fdot,Temperature,Lineno)];
+        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Fdot,Pullingspeed,Temperature,Lineno)];
         N_unfold = N_unfold + 1;
       else
-        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Fdot,Temperature,Lineno)];  
+        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Fdot,Pullingspeed,Temperature,Lineno)];  
         N_refold = N_refold + 1;
       end
     end
