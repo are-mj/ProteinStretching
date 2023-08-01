@@ -18,11 +18,14 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   %   for compatibility with UNix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
+  % Version 3: 2023-07-30: Reads instrument name from COM file to determine
+  %   temperature coding.
   
   cps = 4000;  % CycleCounts per second
 
   file = strrep(filename,'\','/');
-  if numel(regexp(file,'\/'))<2  % Short form of filename ('<date>/xx.txt')
+  if numel(regexp(file,'\/'))<3  % Short form of filename 
+    %                     ('<date>/xx.txt' or '<folder>/<date>/xx.txt')
     file_full = fullfile(datafolder,file);
   else
     file_full = filename;
@@ -71,16 +74,31 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   status = data{statuscolumn};
 
   T_index = floor(rem(status,1000)/10);  % Number from digits 2 and 3
-  
-% The coding scheme for temperature is not always the same
-% More Tlist definitions may be needed in the future
-  if date == datetime('18-Jul-2022') 
-    Tlist = [0,4.4;2,9.88;3,12.12;4,14.89;6,18.89;16,31.7];
-  else
-    Tlist = [(0:2:12)',[4;6;10;14;16;20;23]];
+
+% The coding scheme for temperature is given by the instrument name
+% given in the COM file:
+  instrument = instrument_name(file_full);
+  switch instrument
+    case 'SBS'
+      Tlist = [0,4.4;2,9.88;3,12.12;4,14.89;6,18.89;8,21.45;16,31.7];
+    case 'Tim'
+      Tlist = [(0:2:12)',[4;6;10;14;16;20;23]];
+    otherwise
+      error(['Unknown instrument: ',instrument,'. Cannot read temperatures'])
   end
-  T = nan(size(T_index));
+  T = NaN(size(T_index));
   for ii = 1:size(Tlist,1)
     T(T_index==Tlist(ii,1)) = Tlist(ii,2);
   end
+end
+
+function instrument = instrument_name(file_full)
+% Reads the instrument name from line 1 in the relevant COM file 
+  slashes = regexp(file_full,'/');
+  experiment = file_full(slashes(end)+1);
+  COMfile = [file_full(1:slashes(end)),experiment,'COM.txt'];
+  fid = fopen(COMfile);
+  line1 = fgetl(fid);
+  fclose(fid);
+  instrument = line1(regexp(line1,'=')+(2:4));
 end
