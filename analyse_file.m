@@ -14,7 +14,9 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
 % Version 1.1 2023-02-25
 % Are Mjaavatten (are@mjaavatten.com)
 % Version 1.2 2023-03-24: Added error message if called with no arguments
-% Vesrion 1.3 2023-07-06: Added column 'Pullingspeed' to Tu, Tr
+% Version 1.3 2023-07-06: Added column 'Pullingspeed' to Tu, Tr
+% Version 1.4 2023-07-28: Removed upper limits for peak width and distance
+%                         Corrected total number of stretches in file
 
   if nargin < 1
     error('Missing input argument: filename')
@@ -35,6 +37,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
 
   Tu = cell2table(cell(0,9),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Pullingspeed','Temperature','Lineno'});
   Tr = cell2table(cell(0,9),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Fdot','Pullingspeed','Temperature','Lineno'});
+  N_stretches = 0;
 
   if plotting 
     % Show full time series in grey color as background:
@@ -49,12 +52,15 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
     x = x0(index_range);  % Extent
     time = time0(index_range);
 
-    % find the dominant frequency of the f series to specify paramters for
+    % find the dominant frequency of the f series to specify parameters for
     % the findpeaks function
     nu = dominant_frequency((0:length(f)-1),(f-mean(f)));
     peak_distance = 1/nu;
-    MinPeakDistance = min(500,fix(peak_distance/2));
-    MinPeakWidth = min(200,fix(peak_distance/5));
+    % MinPeakDistance = min(500,fix(peak_distance/2));
+    % MinPeakWidth = min(200,fix(peak_distance/5));
+    % Fails for slow pulling speeds!
+    MinPeakDistance = fix(peak_distance/2);
+    MinPeakWidth = fix(peak_distance/5);    
   
     % Force peaks and valleys separatechange_force unfolding and refolding streches:
     [hival,hipos] = findpeaks(f,'MinPeakDistance',MinPeakDistance,'MinPeakWidth',MinPeakWidth);
@@ -63,7 +69,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
 
     pos = sort([hipos;lopos]); % Indices separating stretching and relaxing stretches 
     N = numel(pos)-1;     % Number of separate stretches
-    
+    N_stretches = N_stretches + N;
     N_unfold = 0;N_refold = 0;
     for i = 1:N
       stretch = pos(i):pos(i+1);
@@ -115,9 +121,9 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(filename,plotting)
   
   N_unfold = size(Tu,1);
   N_refold = size(Tr,1);
-  ratio = (N_unfold+N_refold)/(numel(pos)-1);
+  ratio = (N_unfold+N_refold)/N_stretches;
   fprintf('%s: Found %4d unfoldings and %4d refoldings in %4d stretches. Ratio: %5.2f\n', ...
-    Filename,N_unfold,N_refold,numel(pos)-1,ratio);
+    Filename,N_unfold,N_refold,N_stretches,ratio);
   if plotting 
     titlestr = sprintf(Filename);
     title(titlestr,'interpreter','none') 
