@@ -1,5 +1,5 @@
-function files = allfiles;
-% All text files with molecule stretching results.
+function files = myfiles;
+% My set of text files with molecule stretching results.
   files = {
 '02022022/aA.txt'
 '02032022/cA.txt'
