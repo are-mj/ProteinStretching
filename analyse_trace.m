@@ -1,4 +1,4 @@
-function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotting,params)
+function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting,params)
 % Find transition point and distance in a unfolding or refolding 
 % Inputs;:
 %  s:  input struct with fields:
@@ -27,17 +27,19 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
 
 % Version 2.12
 % Author: Are Mjaavatten (mjaavatt@gmail.com)
-% Date:   2023-08-19
+% Date:   2023-08-26
 
 % Change history
 % v 2.8:  Extra output: shift
 %         No rounding of recovery_ix.  Avoids spurious discretization of dx
-% v 2.9   Restructured to reflect analyse_stretch_demo.mlx
+% v 2.9   Restructured to reflect analyse_trace_demo.mlx
 % v 2.10  Added ouput: pullingspeed
 % v 2.11  Corrected typos.
-% v 2.12  algo_par may override standard algorithm paramters
+% v 2.12  params may override standard algorithm parameters
 
 %% Algortithm tuning parameters
+  % These parameter values are chosen by trial and error and seem to give
+  % reasonable results i most cases
   algpar.minforcerange = 10;  % Discard traces where the force range is small
   algpar.minpointforfit = 3;  % Minimum number of points for linear fit
   algpar.maxsloperatio = 0.5; % Maximum ratio of slopes beore and after transition
@@ -48,12 +50,13 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
   algpar.dfstart = 4;  
   % At the end of a REFOLD trace noise makes detections difficult:
   algpar.dfend = 1;  % Make sure that abs(f-fend) > algpar.dfend at transition.
-  % No end restrictions for unfold stretches
+  % No end restrictions for unfold traces
 
-  % Low slope parts at start or end of a trace may confuse the detection 
-  % algorithm, so eliminate start and end parts where the slope
+  % Low f or x slope parts at start or end of a trace may confuse the  
+  % detection algorithm, so eliminate start and end parts where the slope
   % is less that algpar.slopefrac*median(slope):
-  algpar.slopefrac = 0.7;
+  algpar.slopefracf = 0.7;
+  algpar.slopefracx = 0.8;
 
 %% Handle defaults
   if nargin < 2
@@ -61,7 +64,6 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
   elseif isempty(plotting)
     plotting = false;
   end
-
   if nargin < 3
     params = [];
   end
@@ -99,7 +101,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
 % Make sure x>0 and f both increase or decrease together
   s.x = s.x - min(s.x);
   
-% Change sign of x and f for refolding stretches
+% Change sign of x and f for refolding traces
 % This lets us use the same algorithm for bot unfolding and refolding
   sgn = sign(s.f(end) - s.f(1));
   f = sgn*s.f;
@@ -107,7 +109,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
   t = s.t;
   dt = (t(end)-t(1))/(numel(t)-1);
 
-% Do not accept very short stretches
+% Do not accept very short traces
   df = f(end)-f(1);  % range of forces
   if(df<algpar.minforcerange)  % Skip if force amplitude is small (probably noise only)
     k = -1;
@@ -117,12 +119,16 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_stretch(s,plotti
 % Eliminate bad parts at start and end
   slope = movingslope(f,slopelength);
   medslope = median(slope);
-  startslope = find(slope>algpar.slopefrac*medslope,1);  % End of inital flat part 
+  xslope = movingslope(x,slopelength);
+  xmedslope = median(xslope);
+  startslope = find(slope>algpar.slopefracf*medslope,1);  % End of inital flat part 
+  startxslope = find(xslope>algpar.slopefracx*xmedslope,1);
   startmin = find(abs(f(1)-f)>algpar.dfstart,1);
-  start = max([1,startslope,startmin]);
-  stopslope = find(slope>algpar.slopefrac*median(slope),1,'last'); 
+  start = max([1,startslope,startxslope,startmin]);
+  stopslope = find(slope>algpar.slopefracf*median(slope),1,'last'); 
+  stopxslope = find(xslope>algpar.slopefracx*median(xslope),1,'last'); 
   stopmin = find(f(nf) - f > algpar.dfend,1,'last');
-  stop = min([stopmin,stopslope,nf]);
+  stop = min([stopmin,stopslope,stopxslope,nf]);
   validrange = start:stop;
   pullingspeed = abs((s.x(stop)-s.x(start))/(s.t(stop)-s.t(start)));
 
@@ -244,7 +250,7 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
     pb = polyfit(ixfitb(ok_b),fb(ok_b),1);
     pa = polyfit(ixfita(ok_a),fa(ok_a),1);
   else
-    ok_b = ones(size(ixfitb));
+    ok_b = logical(ones(size(ixfitb)));
   end
 
   if max(abs(pa(1)/pb(1)-1),abs(pb(1)/pa(1)-1)) > algpar.maxsloperatio
@@ -255,7 +261,7 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
   force = sgn*polyval(pb,k);   % Force at transition
   shift = polyval(pb,k)-polyval(pa,k);
   noise = 4*std(f(ixfitb(ok_b))-polyval(pb,ixfitb(ok_b))');
-  noiselimit = max(noise*0.5,0.25+0.25*noise);
+  noiselimit = max(noise*0.7,0.2+0.5*noise);
  
   if shift < noiselimit
     k = -6;  % Too small shift
