@@ -1,48 +1,40 @@
-function files = myfiles;
+function files = myfiles
 % My set of text files with molecule stretching results.
-  files = {
-'02022022/aA.txt'
-'02032022/cA.txt'
-'02032022/dA.txt'
-'02032022/eA.txt'
-'02032022/fA.txt'
-'02042022/hA.txt'
-'02042022/iA.txt'
-'02042022/jA.txt'
-'02042022/kA.txt'
-'02112022/qA.txt'
-'02112022/rA.txt'
-'02112022/sA.txt'
-'02142022/bA.txt'
-'02142022/cA.txt'
-'02142022/dA.txt'
-'02152022/eA.txt'
-'02152022/fA.txt'
-'02152022/gA.txt'
-'02152022/hA.txt'
-'02162022/iA.txt'
-'02162022/jA.txt'
-'02162022/kA.txt'
-'02162022/lA.txt'
-'02162022/mA.txt'
-'02162022/nA.txt'
-'02172022/oA.txt'
-'02172022/pA.txt'
-'02182022/qA.txt'
-'02182022/rA.txt'
-'04082022/jA.txt'
-'04082022/uA.txt'
-'04082022/YA.txt'
-'07012022/zAB.txt'
-'07082022/cA.txt'
-'07082022/eA.txt'
-'07122022/cA.txt'
-'07142022/aAB.txt'
-'07152022/bAB.txt'
-'07182022/bA.txt'
-'07182022/cAB.txt'
-'07182022/dAE.txt'
-'07182022/eA.txt'
-'07182022/fA.txt' };
-
+% The output is an array of Matlab strings
+  files = [
+    "02022022/aA.txt"
+    "02032022/cA.txt"
+    "02032022/dA.txt"
+    "02032022/eA.txt"
+    "02032022/fA.txt"
+    "02042022/hA.txt"
+    "02042022/iA.txt"
+    "02042022/jA.txt"
+    "02042022/kA.txt"
+    "02112022/qA.txt"
+    "02112022/rA.txt"
+    "02112022/sA.txt"
+    "02142022/bA.txt"
+    "02142022/cA.txt"
+    "02142022/dA.txt"
+    "02152022/eA.txt"
+    "02152022/fA.txt"
+    "02152022/gA.txt"
+    "02152022/hA.txt"
+    "02162022/iA.txt"
+    "02162022/jA.txt"
+    "02162022/kA.txt"
+    "02162022/lA.txt"
+    "02162022/mA.txt"
+    "02162022/nA.txt"
+    "02172022/oA.txt"
+    "02172022/pA.txt"
+    "02182022/qA.txt"
+    "02182022/rA.txt"
+    "04082022/YA.txt"
+    "04082022/jA.txt"
+    "04082022/uA.txt"
+    "07012022/zAB.txt"
+    "07082022/cA.txt"
+    "07082022/eA.txt"];
 end

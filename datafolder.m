@@ -6,5 +6,6 @@ function folder = datafolder
 %  plotfile(fullfile(datafolder,'02042022','kA.txt'));
 % or: 
 %  plotfile(fullfile(datafolder,'02042022/kA.txt'));
-  folder = 'C:\Users\mjaav_hi6z2cj\OneDrive\Data\Chile';
+  % folder = 'C:\Users\mjaav_hi6z2cj\OneDrive\Data\Chile';
+  folder = 'C:\Users\mjaav_hi6z2cj\OneDrive\Data\Chile\Top7';
 end

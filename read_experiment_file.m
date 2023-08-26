@@ -1,58 +1,44 @@
-function [file,t,f,xx,T] = read_experiment_file(filename)
+function [t,f,xx,T,Filename] = read_experiment_file(file)
 % Reads in a text file from molecular tweezers protein streching experient
-% Input: filename
-%    Normally on the form '04082022/uA.txt'. The full path will be supplied
+% Input: file
+%    Normally on the form <date>/xX.txt'. The full path will be supplied
 %      by datafolder.m.
 %    May also include the full path.  This will override datafolder.m
 % Output:
-%    file:  Format 'mmddyyyy/<xx>.txt'
-%       Alternatively, from the data folder part of filename.  
 %    t   : Time (s)  Calculated as CycleCounts*4000;
 %    f   : Force (pN)
 %    xx  : Two column extent array from A_dist_y and B_dist_y (nm)
-%    T   : Temperauser if this is coded in the Status column
+%    T   : Temperature if this is coded in the Status column
+%    Filename:  Short form <date>'/xX.txt'. 
 
   % Version 2023-05-07: Allows more flexible file names.  Use full path if
-  %    filenames do not conform to <datafolder>/date/<xx>.txt
+  %    filenames do not conform to <datafolder>/<date>/<xx>.txt
   % Version 2023-01-23: Translate all backslashes in file path to slashes
-  %   for compatibility with UNix amd Mac.
+  %   for compatibility with Unix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
-  % Version 3: 2023-07-30: Reads instrument name from COM file to determine
-  %   temperature coding.
+  % Version 3: 2023-08-15
   
   cps = 4000;  % CycleCounts per second
 
-  file = strrep(filename,'\','/');
-  if numel(regexp(file,'\/'))<3  % Short form of filename 
-    %                     ('<date>/xx.txt' or '<folder>/<date>/xx.txt')
+  file = strrep(file,'\','/');
+  if numel(regexp(file,'\/'))<2  % Short form of file 
     file_full = fullfile(datafolder,file);
+    file_full = strrep(char(file_full),'\','/');
   else
-    file_full = filename;
+    file_full = file;
   end
-  file_full = strrep(char(file_full),'\','/');
+  
   filename_slashes = regexp(file_full,'\/');  % Position of '/' in string file
-  file = string(file_full(filename_slashes(end-1)+1:end));  % short file name
+  Filename = string(file_full(filename_slashes(end-1)+1:end));  % short file name
 
   % Read file
   fid = fopen(file_full);
   if fid == -1
       error('File %s not found',file)
   end
-  % First line gives experiment date. THis is no longer used
-  try
-    dateline = textscan(fid,'%s',1,Delimiter='\n');  
-    slashes = cell2mat(regexp(dateline{1},'/'));
-    datestr = dateline{1}{1}(slashes(1)-2:slashes(2)+2);
-    date = datetime(datestr,'inputformat','MM/dd/yy');
-  catch
-    try 
-     parts = strsplit(file,'/');
-     date = datetime(parts{1},'inputformat','MMddyyyy');
-    catch
-      date = datetaime('01-Jan-2020');  % Unknown date
-    end
-  end
+
+  textscan(fid,'%s',1,Delimiter='\n');  %skip first line
   % Line 2 gives column headers
   headercell = textscan(fid,'%s',1,Delimiter='\n');
   headerline = headercell{1}{1};
@@ -69,36 +55,22 @@ function [file,t,f,xx,T] = read_experiment_file(filename)
   % Define data (column) vectors
   counts = data{1};
   f = -data{3};      % Force
-  xx = -[data{xA_column},data{xB_column}];  % Read both extent columns
+  xx = -[data{xA_column},data{xB_column}];  % Read both trap position columns
   t =  counts/cps;   % Time from experiment start (seconds)
   status = data{statuscolumn};
 
   T_index = floor(rem(status,1000)/10);  % Number from digits 2 and 3
-
-% The coding scheme for temperature is given by the instrument name
-% given in the COM file:
-  instrument = instrument_name(file_full);
-  switch instrument
-    case 'SBS'
-      Tlist = [0,4.4;2,9.88;3,12.12;4,14.89;6,18.89;8,21.45;16,31.7];
-    case 'Tim'
-      Tlist = [(0:2:12)',[4;6;10;14;16;20;23]];
-    otherwise
-      error(['Unknown instrument: ',instrument,'. Cannot read temperatures'])
-  end
+  T_index(status<1000) = NaN;
   T = NaN(size(T_index));
-  for ii = 1:size(Tlist,1)
-    T(T_index==Tlist(ii,1)) = Tlist(ii,2);
+
+  % The coding scheme for temperature is given by temperature_code:
+  Tlist = temperature_code(Filename);
+  if isempty(Tlist)
+    T = T_from_COM(file)*ones(size(f));
+  else
+    for ii = 1:size(Tlist,1)
+      T(T_index==Tlist(ii,1)) = Tlist(ii,2);
+    end
   end
 end
 
-function instrument = instrument_name(file_full)
-% Reads the instrument name from line 1 in the relevant COM file 
-  slashes = regexp(file_full,'/');
-  experiment = file_full(slashes(end)+1);
-  COMfile = [file_full(1:slashes(end)),experiment,'COM.txt'];
-  fid = fopen(COMfile);
-  line1 = fgetl(fid);
-  fclose(fid);
-  instrument = line1(regexp(line1,'=')+(2:4));
-end

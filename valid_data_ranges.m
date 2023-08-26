@@ -1,13 +1,17 @@
 function r = valid_data_ranges(file)
 % Start and end indices for the parts of input data to be analysed.
-%   data index normally correspond to line number in the file minus 4.
+% Input: short file name <date>/xX.txt.  NOTE: date format may vary
+% Output: r (n by 2 array of start end end indices for parts)
+%
+%   data index normally corresponds to line number in the file minus 4.
 %   r: n by 2 array
 %
 % Used by analyse_file.m
 %
 % To specify parts in a new file, use read_experiment_file.m 
 %   and plot f.  Use the zoom and data tip tools to specify start
-%   and end indices.  If no r is specified for a given file, the whole 
+%   and end indices of parts with relatively homogeneous force osclillation
+%   frequency. If no r is specified for a given file, the whole 
 %   data set is used by analyse_file
 
   file = char(file);  % Convert if string
@@ -122,16 +126,35 @@ function r = valid_data_ranges(file)
       r = [178     112233];
     case '07182022/fA.txt'
       r = [89      174225];
-    case 'Molecula qA/250322qA.txt'
-      r = [1    288361
-        290791  382894
-        387714  426644
-        442180  521289
-        522839  662561];
-    case 'yB/250322yB.txt'
-      r = [1    259339
-        289217  293722
-        295618  333449];
+      
+% Files from 20220718 may use two different date folder formats
+    case '20220718/bA.txt'
+      r = [64       61427];
+    case '20220718/cAB.txt'
+      r = [222      234858];
+    case '20220718/dAE.txt'
+      r = [1        656143 
+          656672   770084];
+    case '20220718/eA.txt'
+      r = [178     112233];
+    case '20220718/fA.txt'
+      r = [89      174225];      
+
+    case '15052023/dA.txt'
+      r = [2640    112387
+          112390   154031];
+    case '15052023/gA.txt'
+      r = [1       131982
+          131000   200845
+          200900   307866];
+    case '20230623/fA.txt'
+      r = [1      59687
+          59883   156898
+          156900  801195];
+    case '20230630/fA.txt'
+      r = [1         59491
+           59500    156887
+           159267   801263];
     case '20230721/JAG.txt'
       r = [1    205853
         206149  1052170
@@ -150,6 +173,10 @@ function r = valid_data_ranges(file)
         48500   131472
         131500  140629
         140800  188980];
+    case '20230721/fD.txt'
+      r = [1    18770
+        19300   35500  
+        40000  199400];
     case '20230722/oA.txt'
       r = [5353 23155
         23216   26955
@@ -159,6 +186,9 @@ function r = valid_data_ranges(file)
         58105   76794
         76900   82104
         82255   192000];
+    case '20230722/pA.txt'
+      r = [1    36283
+        36300   196992];
     case '20230725/SF.txt'
       r = [1    145876
         146000  150795
@@ -171,5 +201,6 @@ function r = valid_data_ranges(file)
          57244  60646];
        case '20230725/UC.txt'
          r = [1 32480
-           32840  191856];
+           32840  191856];  
+  end
 end
