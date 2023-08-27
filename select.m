@@ -1,7 +1,9 @@
 function tbl = select(tbl,criteria)
-% Select rows in table that satisfy one or more criteria 
+% Select rows in Matlab table that satisfy one or more criteria 
 % combining column names and relational operators
 %   relational operators: '<', '>' or '='
+%     NOTE that Matlab's standard equality operator '==' is replaced by '='
+%     (out of covenience for the programmer!)
 %   Single relations have the form <column><relation><value>
 %   Combine lower and upper limits with the form: lowlim<column<hilim
 % Two or more relations may be combined with '&'.
