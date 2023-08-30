@@ -16,8 +16,8 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
 % Are Mjaavatten (mjaavatt@gmail.com)
 % Version 1.2 2023-03-24: Added error message if called with no arguments
 % Version 1.3 2023-07-06: Added column 'Pullingspeed' to Tu, Tr
-% Version 1.4 2023-08_15: Removed upper limits for peak width and distance
-%                         Added column Trapx to tables. Bug fixes
+% Version 1.4 2023-08_26: Removed upper limits for peak width and distance
+%                         Added columns Trapx, dFdx and dt to Tu and Tr. 
 
   if nargin < 1
     error('Missing input argument: file')
@@ -38,8 +38,8 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
   end 
   n_parts = size(r,1);  % Number of parts to be analysed
 
-  Tu = cell2table(cell(0,10),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','Lineno'});
-  Tr = cell2table(cell(0,10),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','Lineno'});
+  Tu = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
+  Tr = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
   N_traces = 0;
 
   if plotting 
@@ -85,7 +85,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
       if isempty(s.f) || dt < 0.1 || dt > 35  
         continue
       end
-      [k1,Force,Deltax,Fdot,Forceshift,Pullingspeed] = analyse_trace(s); 
+      [k1,Force,Deltax,Fdot,Forceshift,Pullingspeed,dFdx,dt] = analyse_trace(s); 
       if k1 < 1
         continue;  % No transition found
       end
@@ -95,10 +95,10 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
       Lineno = index_range(index)+4;   % Line number in file
       Temperature = T(Lineno);
       if sign(s.f(end)-s.f(1)) == 1
-        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,Lineno)];
+        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];
         N_unfold = N_unfold + 1;
       else
-        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,Lineno)];  
+        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];  
         N_refold = N_refold + 1;
       end
     end
