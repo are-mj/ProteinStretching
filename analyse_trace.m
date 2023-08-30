@@ -183,17 +183,17 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
     figure;
     xfit = sgn*polyval(px,ixfitb(1):ixfita(end));
     xpos = sgn*polyval(px,k);        % x at transition
-    subplot(311)
+    subplot(411)
     plot(sgn*f);
     hold on;plot(k,sgn*f(k),'*r')
     ylabel('Force')
     title(s.file);
-    subplot(312);
+    subplot(412);
     plot(sgn*x)
     hold on;plot(k,sgn*x(k),'*r')
     xlabel('index') 
     ylabel xpos
-    subplot(313)
+    subplot(212)
     h = plot(sgn*x,sgn*f,xfit(1:numel(ixfitb)),sgn*polyval(pb,ixfitb),'k',...
       xfit(end-numel(ixfita)+1:end),sgn*polyval(pa,ixfita),'k');
     set(h(2:3),'linewidth',2)
