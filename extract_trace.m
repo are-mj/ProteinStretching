@@ -85,22 +85,7 @@ function s = extract_trace(filename,t,plotting)
   s.x = max(x(trace))-x(trace);
   s.t = time(trace);
   s.r = trace;
-  k = analyse_trace(s);
-  s.k = k;
   s.file = filename;
-  if plotting
-    figure;
-    subplot(211);plot(s.t,s.f);
-    xlabel('time (s)')
-    ylabel('Force (pN)')
-    subplot(212);plot(s.f)
-    xlabel('index')
-    ylabel('Force (pN)')
-    if k>0
-      subplot(211),hold on;
-      plot(s.t(k),s.f(k),'.r','MarkerSize',10);
-      subplot(212),hold on;
-      plot(k,s.f(k),'.r','MarkerSize',10); 
-    end
-  end
+  k = analyse_trace(s,plotting);
+  s.k = k;
 end
