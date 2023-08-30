@@ -27,7 +27,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
 
 % Version 2.12
 % Author: Are Mjaavatten (mjaavatt@gmail.com)
-% Date:   2023-08-26
+% Date:   2023-08-30
 
 % Change history
 % v 2.8:  Extra output: shift
@@ -35,7 +35,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
 % v 2.9   Restructured to reflect analyse_trace_demo.mlx
 % v 2.10  Added ouput: pullingspeed
 % v 2.11  Corrected typos.
-% v 2.12  params may override standard algorithm parameters
+% v 2.12  Adjusted noise sensitivity
 
 %% Algortithm tuning parameters
   % These parameter values are chosen by trial and error and seem to give
@@ -180,8 +180,20 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
 
 %% Plot result
   if plotting
+    figure;
     xfit = sgn*polyval(px,ixfitb(1):ixfita(end));
     xpos = sgn*polyval(px,k);        % x at transition
+    subplot(311)
+    plot(sgn*f);
+    hold on;plot(k,sgn*f(k),'*r')
+    ylabel('Force')
+    title(s.file);
+    subplot(312);
+    plot(sgn*x)
+    hold on;plot(k,sgn*x(k),'*r')
+    xlabel('index') 
+    ylabel xpos
+    subplot(313)
     h = plot(sgn*x,sgn*f,xfit(1:numel(ixfitb)),sgn*polyval(pb,ixfitb),'k',...
       xfit(end-numel(ixfita)+1:end),sgn*polyval(pa,ixfita),'k');
     set(h(2:3),'linewidth',2)
@@ -190,7 +202,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
     hold off
     xlabel('xpos (nm)');
     ylabel('Force (pN)')
-    title(s.file); 
+    title(sprintf('t = %.1fs, dx = %.1fnm',s.t(k),dx))
   end
 end
 
@@ -261,8 +273,11 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
   force = sgn*polyval(pb,k);   % Force at transition
   shift = polyval(pb,k)-polyval(pa,k);
   noise = 4*std(f(ixfitb(ok_b))-polyval(pb,ixfitb(ok_b))');
-  noiselimit = max(noise*0.7,0.2+0.5*noise);
- 
+  if sgn > 0
+    noiselimit = max(noise*0.7,0.8);
+  else
+    noiselimit = max(noise*0.4,0.5);
+  end
   if shift < noiselimit
     k = -6;  % Too small shift
     return
