@@ -16,8 +16,8 @@ files = [
     "20230721/JB.txt"
     "20230721/JC.txt"
     "20230721/JD.txt"
-    "20230721/JE.txt"
-    "20230721/JF.txt"
+    % "20230721/JE.txt"  % Noisy, unusual.
+    % "20230721/JF.txt"  % Noisy, unusual.
     "20230721/JG.txt"
     "20230721/KA.txt"
     "20230721/KB.txt"
