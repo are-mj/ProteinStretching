@@ -118,7 +118,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
       end
     end
     ratio = (N_unfold+N_refold)/(numel(pos)-1);
-    fprintf('Part %d: traces: %d  Unfoldings %d  Refoldings %d, Ratio: %4.2f\n',...
+    fprintf('Part %4d: traces: %4d  Unfoldings %4d  Refoldings %4d, Ratio: %4.2f\n',...
       part,numel(pos)-1,N_unfold,N_refold,ratio)
 
     if plotting
