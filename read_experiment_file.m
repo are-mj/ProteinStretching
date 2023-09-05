@@ -1,4 +1,4 @@
-function [t,f,xx,T,Filename] = read_experiment_file(file)
+function[t,f,xx,T,Filename] = read_experiment_file(file) 
 % Reads in a text file from molecular tweezers protein streching experient
 % Input: file
 %    Normally on the form <date>/xX.txt'. The full path will be supplied
@@ -17,7 +17,8 @@ function [t,f,xx,T,Filename] = read_experiment_file(file)
   %   for compatibility with Unix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
-  % Version 3: 2023-08-15
+  % Version 3: 2023-09-05: Automatc detection of large frequency changes
+  %                        headers may be fund in line 1 as well as line 2
   
   cps = 4000;  % CycleCounts per second
 
@@ -38,10 +39,17 @@ function [t,f,xx,T,Filename] = read_experiment_file(file)
       error('File %s not found',file)
   end
 
-  textscan(fid,'%s',1,Delimiter='\n');  %skip first line
-  % Line 2 gives column headers
+  % The headers are normally found in line 1 or 2 of the file:
   headercell = textscan(fid,'%s',1,Delimiter='\n');
   headerline = headercell{1}{1};
+  if ~contains(headerline,'X_force')
+    % Line 1 does not contanin headers, Try line 2:
+    headercell = textscan(fid,'%s',1,Delimiter='\n');
+    headerline = headercell{1}{1};   
+  end
+  if ~contains(headerline,'X_force')
+    error('Could not find headers in lines 1 or 2 of %s',file_full)
+  end
   headers = regexp(headerline,'\t','split');
   xA_column = contains(headers,'A_dist-Y');
   xB_column = contains(headers,'B_dist-Y');
