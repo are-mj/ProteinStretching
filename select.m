@@ -9,6 +9,10 @@ function tbl = select(tbl,criteria)
 % Two or more relations may be combined with '&'.
 % Exanple: 
 %  T2 = select(Tun,'Pullingspeed>200 & 9<Temperature<15');
+%
+% Version 1.1  2023-09-05
+%   Allows strings as well as numeric values in criteria
+%   T2 = select(Tun,'Filename=20230725/TG.txt')
 
   crits = regexp(criteria,'&','split');
   for ii = 1:numel(crits)
@@ -19,6 +23,9 @@ function tbl = select(tbl,criteria)
         column = crit(1:pos-1);
         operator = crit(pos);
         value = str2double(crit(pos+1:end));
+        if isnan(value)
+          value = crit(pos+1:end); % Value is char array
+        end
         tbl = modify(tbl,column,operator,value,1);
       case 2
         column = crit(pos(1)+1:pos(2)-1);
