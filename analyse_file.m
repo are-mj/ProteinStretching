@@ -18,6 +18,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
 % Version 1.3 2023-07-06: Added column 'Pullingspeed' to Tu, Tr
 % Version 1.4 2023-08_26: Removed upper limits for peak width and distance
 %                         Added columns Trapx, dFdx and dt to Tu and Tr. 
+% Version 1.5 2023-09-04: Automated finding large signal frequency changes
 
   if nargin < 1
     error('Missing input argument: file')
@@ -30,13 +31,20 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
   %       'Filename' is always the short form
   [time0,f0,xx0,T,Filename] = read_experiment_file(file);  
   x0 = mean(xx0,2);
-  
-  % Read valid index ranges for file if they are defined
+
+  % Define index ranges with similar x oscillation frequency
+  % First check for predefined ranges
   r = valid_data_ranges(Filename);
-  if isempty(r)
-    r = [1,numel(f0)];
-  end 
-  n_parts = size(r,1);  % Number of parts to be analysed
+  if r == 0  % No predefined ranges
+    % Automatically find changes in extent oscillation frequency
+    % Replaces valid_data_ranges  
+    mx = median(x0)-x0;  % Center
+    c = find(mx(2:end).*mx(1:end-1) < 0);  % zero crossing indices
+    c(diff(c)<50) = [];  % Remove short crossing intervals caused by noise
+    % Find large changes in crossing intervals:
+    r = [1;c(ischange(log10(diff(c)),'threshold',1));length(x0)];  
+  end
+  n_parts = numel(r)-1;
 
   Tu = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
   Tr = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
@@ -50,14 +58,21 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
 
   for part = 1:n_parts
     % Define variables for this part
-    index_range = r(part,1):r(part,2);
+    % index_range = r(part,1):r(part,2);
+    index_range = r(part):r(part+1);
     f = f0(index_range);  % Force
+    if max(f)-min(f) < 8
+      continue
+    end
     x = x0(index_range);  % Extent
     time = time0(index_range);
 
     % find the dominant frequency of the f series to specify parameters for
     % the findpeaks function
     nu = dominant_frequency((0:length(f)-1),(f-mean(f)));
+    if isempty(nu)
+      continue
+    end
     peak_distance = 1/nu;
     % MinPeakDistance = min(500,fix(peak_distance/2));
     % MinPeakWidth = min(200,fix(peak_distance/5));

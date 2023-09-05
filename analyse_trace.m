@@ -1,4 +1,4 @@
-function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting,params)
+function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,plotting,params)
 % Find transition point and distance in a unfolding or refolding 
 % Inputs;:
 %  s:  input struct with fields:
@@ -97,6 +97,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
   shift = NaN;
   pullingspeed = NaN;
   dFdx = NaN;
+  noise = NaN;
 
 % Make sure x>0 and f both increase or decrease together
   s.x = s.x - min(s.x);
@@ -130,6 +131,10 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
   stopmin = find(f(nf) - f > algpar.dfend,1,'last');
   stop = min([stopmin,stopslope,stopxslope,nf]);
   validrange = start:stop;
+  if stop-start < 15
+    k = 0;
+    return
+  end
   pullingspeed = abs((s.x(stop)-s.x(start))/(s.t(stop)-s.t(start)));
 
 %% Find transitions (unfolding or refolding events)
@@ -169,7 +174,7 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
 
   %  *** Search among valleys to find the first valid(?) event ****
   while k<1 && ii <= min(numel(valleys),10)
-    [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
+    [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
       check_event(ixvalleys(ii),f,start,stop,px,dt,sgn,algpar);
     ii = ii + 1;
   end
@@ -205,8 +210,8 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt] = analyse_trace(s,plotting
     title(sprintf('t = %.1fs, dx = %.1fnm',s.t(k),dx))
   end
 end
-
-function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
+%%
+function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
     check_event(ixvalley,f,start,stop,px,dt,sgn,algpar)
   % Check if the event at ixvalley is a valid transition
   % Returns k = NaN if not valid
@@ -218,6 +223,7 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift] = ...
   ixfita = [];
   ixfitb = [];
   shift = NaN;
+  noise = NaN;
 
   nf = numel(f);
   % Find highest f value before ixvalley
