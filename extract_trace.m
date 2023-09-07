@@ -45,20 +45,31 @@ function s = extract_trace(filename,t,plotting)
   end
   ny0 = numel(f0);  
 
-
-  % Read parameters for file
-  r = valid_data_ranges(file);  
-  if isempty(r)
-    r = [1,numel(f0)];
-  end  
+  % Define index ranges with similar x oscillation frequency
+  % First check for predefined ranges
+  r = valid_data_ranges(file);
+  if r == 0  % No predefined ranges
+    % Automatically find changes in extent oscillation frequency
+    mx = median(x0)-x0;  % Center
+    c = find(mx(2:end).*mx(1:end-1) < 0);  % zero crossing indices
+    c(diff(c)<50) = [];  % Remove short crossing intervals caused by noise
+    % Find large changes in crossing intervals:
+    r = [1;c(ischange(log10(diff(c)),'threshold',1));length(x0)];  
+  end
 
   index0 = interp1(t0,1:ny0,t,'nearest');
-  part = find(r(:,1)<index0,1,'last');
-  index = index0 - r(part,1) +1;  % Local index within part
-
-  f = f0(r(part,1):r(part,2));  % Force
-  x = x0(r(part,1):r(part,2));  % Extent
-  lines = r(part,1):r(part,2);   % Line numbers in file
+  part = find(index0<r ,1,'last')-1;
+  index = index0 - r(part); % Local index within part
+  f = f0(r(part):r(part+1));
+  x = x0(r(part):r(part+1));
+  lines = r(part):r(part+1);   % Line numbers in file
+  % 
+  % part = find(r(:,1)<index0,1,'last');
+  % index = index0 - r(part,1) +1;  % Local index within part
+  % 
+  % f = f0(r(part,1):r(part,2));  % Force
+  % x = x0(r(part,1):r(part,2));  % Extent
+  % lines = r(part,1):r(part,2);   % Line numbers in file
   time = t0(lines);
   nu = dominant_frequency((0:length(f)-1),(f-mean(f)));
   peak_distance = 1/nu;
