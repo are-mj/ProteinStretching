@@ -1,4 +1,4 @@
-# ProteinStreching
+# ProteinStretching
 Matlab files for 
 - Identifying unfolding/refolding events using optical tweezers
 - Calculating probability density vs. transition force histogram arrays
@@ -11,10 +11,10 @@ It also contains tools for processing the data to probability densities and mode
 
 Matlab Toolboxes used:
 
-- Signal Processing Toolbox
-Used by analyse_file and other functions using the experiment text files
+- Signal Processing:  Function findpeaks is used extesively by analyse_file several other functions.
+- Optimization: Function lsqcurvefit used by fit_unfold_parameters and fit_refold_parameters
+- Statistics and Machine Learning: Function nlparci used by fit_unfold_parameters and fit_refold_parameters
 
-- Optimization and Statistics and Machine Learning Toolboxes
-Used by fit_unfold_parameters and fit_refold_parameters
+File movingslope.m is copied fro the Matlab File Exchange.  Copyright: John D'Errico
 
 All Matlab files have been tested on version R2023a, but may well work with several older versions.
