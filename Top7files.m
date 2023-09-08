@@ -1,7 +1,4 @@
 function files = Top7files
-
-% Combined files: 1 file per experiment
-% folder = 'C:\Users\mjaav_hi6z2cj\OneDrive\Data\Chile\Top7';
 files = [    
     "20220718/bA.txt"
     "20220718/cAB.txt"
@@ -25,11 +22,11 @@ files = [
     "20230721/cA.txt"
     "20230721/cB.txt"
     "20230721/dA.txt"
-    "20230721/eA.txt"
+    % "20230721/eA.txt"  % No meaningful data
     "20230721/fA.txt"
     "20230721/fB.txt"
     "20230721/fC.txt"
-    "20230721/fD.txt"
+    % "20230721/fD.txt"  % Noisy, unusual.
     "20230721/fE.txt"
     "20230721/fF.txt"
     "20230721/fG.txt"
