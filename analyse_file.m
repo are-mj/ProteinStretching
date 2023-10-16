@@ -1,4 +1,4 @@
-function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
+function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
 % Identify unfolding and refolding events from measurement text file
 %   Replaces identify_evnts.m
 % Inputs:
@@ -11,6 +11,8 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
 % Output:
 %  Tu,Tr: Matlab tables of Time, Deltax, Force etc. for unfold and refold
 %  f0, x0, time0:  time series of force, trap position and time
+%  tpeaks:       Times for detected force maxima. Used by findpairs
+%                  to find refold/unfold pairs
 %
 % Version 1.1 2023-02-25
 % Are Mjaavatten (mjaavatt@gmail.com)
@@ -19,6 +21,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
 % Version 1.4 2023-08_26: Removed upper limits for peak width and distance
 %                         Added columns Trapx, dFdx and dt to Tu and Tr. 
 % Version 1.5 2023-09-04: Automated finding large signal frequency changes
+% Version 1.6 2023-09-18: Added output tpeaks. Reduced MinPeakWidth by 17%
 
   if nargin < 1
     error('Missing input argument: file')
@@ -37,7 +40,6 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
   r = valid_data_ranges(Filename);
   if r == 0  % No predefined ranges
     % Automatically find changes in extent oscillation frequency
-    % Replaces valid_data_ranges  
     mx = median(x0)-x0;  % Center
     c = find(mx(2:end).*mx(1:end-1) < 0);  % zero crossing indices
     c(diff(c)<50) = [];  % Remove short crossing intervals caused by noise
@@ -49,6 +51,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
   Tu = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
   Tr = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
   N_traces = 0;
+  tpeaks = [];
 
   if plotting 
     % Show full time series in grey color as background:
@@ -78,12 +81,13 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
     % MinPeakWidth = min(200,fix(peak_distance/5));
     % Fails for slow pulling speeds!
     MinPeakDistance = fix(peak_distance/2);
-    MinPeakWidth = fix(peak_distance/5);    
+    MinPeakWidth = fix(peak_distance/6);    
   
     % Force peaks and valleys separatechange_force unfolding and refolding streches:
     [hival,hipos] = findpeaks(f,'MinPeakDistance',MinPeakDistance,'MinPeakWidth',MinPeakWidth);
     [loval,lopos] = findpeaks(-f,'MinPeakDistance',MinPeakDistance,'MinPeakWidth',MinPeakWidth);
     loval = -loval;
+    tpeaks = [tpeaks;time(hipos)];
 
     pos = sort([hipos;lopos]); % Indices separating stretching and relaxing traces 
     N = numel(pos)-1;     % Number of separate traces
@@ -110,10 +114,12 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
       Lineno = index_range(index)+4;   % Line number in file
       Temperature = T(Lineno);
       if sign(s.f(end)-s.f(1)) == 1
-        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];
+        Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Trapx,...
+          Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];
         N_unfold = N_unfold + 1;
       else
-        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Trapx,Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];  
+        Tr = [Tr;table(Filename,Time,Deltax,Force,Forceshift,Trapx, ...
+          Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];  
         N_refold = N_refold + 1;
       end
     end
@@ -131,8 +137,7 @@ function [Tu,Tr,f0,x0,time0] = analyse_file(file,plotting)
       set(h,'MarkerFaceColor','k','MarkerSize',2);   
       hold off
     end 
-%     allhi = [allhi;hipos];
-  end
+  end  % end part
   
   N_unfold = size(Tu,1);
   N_refold = size(Tr,1);
