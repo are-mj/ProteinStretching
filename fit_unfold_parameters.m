@@ -48,7 +48,13 @@ function [theta,theta_std,resnorm,Fplot,pdplot] = fit_unfold_parameters(F,pd,T,t
   [thetacalc,resnorm,resid,exitflag,~,~,J] = ...
     lsqcurvefit(probfun,thetacalc0,F,pd,lb,ub,opt);
   if exitflag < 1
-    error('lsqcurvefit problems. Exitflag: %d',exitflag)
+    % warning('lsqcurvefit problems. Exitflag: %d',exitflag)
+    theta = NaN;
+    theta_std = NaN;
+    resnorm = NaN;
+    Fplot = NaN;
+    pdplot = NaN;
+    return
   end
   DG = thetacalc(1);
   a = thetacalc(2);
