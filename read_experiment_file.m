@@ -5,6 +5,7 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
 %      by datafolder.m.
 %    May also include the full path.  This will override datafolder.m
 % Output:
+
 %    t   : Time (s)  Calculated as CycleCounts*4000;
 %    f   : Force (pN)
 %    xx  : Two column extent array from A_dist_y and B_dist_y (nm)
@@ -17,8 +18,12 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
   %   for compatibility with Unix amd Mac.
   % Version 2: 2023-02-13: reads Columnns A_dist_Y and B_dist_y 
   %   into the two-column array xx.
-  % Version 3: 2023-09-05: Automatc detection of large frequency changes
-  %                        headers may be fund in line 1 as well as line 2
+  % Version 3: 2023-10-15: 
+  %     Automatic detection of large frequency changes
+  %     Headers may be found in either line 1 or line 2
+  %     Default temp. 20°C if neither Tlist nor COM file available. 
+  %     Reads time column (header: 'time(sec)') if it exists.
+
   
   cps = 4000;  % CycleCounts per second
 
@@ -51,34 +56,43 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
     error('Could not find headers in lines 1 or 2 of %s',file_full)
   end
   headers = regexp(headerline,'\t','split');
-  xA_column = contains(headers,'A_dist-Y');
-  xB_column = contains(headers,'B_dist-Y');
-  statuscolumn = contains(headers,'Status');
-  frewind(fid)
 
+  frewind(fid)  
   % read data from line 4 (col 1 in line 3 is often bad)
   data = textscan(fid,'%f %f %f %f %f %f %f %f%*[^\n]','headerlines',3);
   fclose(fid);
 
   % Define data (column) vectors
-  counts = data{1};
-  f = -data{3};      % Force
+  timecol = contains(headers,'time(sec)');
+  if any(timecol)
+    t = data{timecol};
+  else
+    countscol = contains(headers,'CycleCount');
+    t = data{countscol}*cps;
+  end
+  forcecol = contains(headers,'Y_force');
+  f = -data{forcecol};
+  xA_column = contains(headers,'A_dist-Y');
+  xB_column = contains(headers,'B_dist-Y');
   xx = -[data{xA_column},data{xB_column}];  % Read both trap position columns
-  t =  counts/cps;   % Time from experiment start (seconds)
+  statuscolumn = contains(headers,'Status');
   status = data{statuscolumn};
 
-  T_index = floor(rem(status,1000)/10);  % Number from digits 2 and 3
-  T_index(status<1000) = NaN;
-  T = NaN(size(T_index));
-
-  % The coding scheme for temperature is given by temperature_code:
+  % Try reading temperature 
   Tlist = temperature_code(Filename);
-  if isempty(Tlist)
-    T = T_from_COM(file)*ones(size(f));
-  else
+  if ~isempty(Tlist)
+    % Read temperature index from digits 2 and 3 in the status column
+    T_index = floor(rem(status,1000)/10);  % Number from digits 2 and 3
+    T_index(status<1000) = NaN;
+    T = NaN(size(T_index));    
     for ii = 1:size(Tlist,1)
       T(T_index==Tlist(ii,1)) = Tlist(ii,2);
     end
-  end
+  else   
+    try
+      T = T_from_COM(file)*ones(size(f));
+    catch
+      warning('Unable to read temperatures. Uses default 20°C');
+      T = 20*ones(size(f));
+    end
 end
-
