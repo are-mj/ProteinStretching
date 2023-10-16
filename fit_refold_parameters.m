@@ -21,9 +21,9 @@ function [theta,theta_std,resnorm,Fplot,pdplot] = fit_refold_parameters(F,pd,T,t
   opt.Display = 'off';
 
   lb = [0;0];
-  ub = [10;10];
+  ub = [50;10];
 
-  probfun = @(theta,F)refold_probability_model(theta,F,T(ii),par.Fdotmean);
+  probfun = @(theta,F)refold_probability_model(theta,F,T,par.Fdotmean);
 
   % Fit model parameters to data:
   [theta,resnorm,resid,exitflag,~,~,J] = ...
