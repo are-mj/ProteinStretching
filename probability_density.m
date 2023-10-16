@@ -12,6 +12,8 @@ function [pd,F,n,Fdot_mean] = probability_density(tbl,dF,plotting)
 %  F: Force vector (useful if F is not specified in the call)
 %  Fdot_mean: mean value of Fdot (= df/dt, where f(t) is the pulling force)
 
+% Version 1.1: Fdot is now negative for refolding traces
+
   if nargin < 3
     plotting = 0;
   end
