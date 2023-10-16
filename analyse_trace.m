@@ -268,7 +268,7 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
     pb = polyfit(ixfitb(ok_b),fb(ok_b),1);
     pa = polyfit(ixfita(ok_a),fa(ok_a),1);
   else
-    ok_b = logical(ones(size(ixfitb)));
+    ok_b = true(size(ixfitb));
   end
 
   if max(abs(pa(1)/pb(1)-1),abs(pb(1)/pa(1)-1)) > algpar.maxsloperatio
@@ -280,9 +280,11 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
   shift = polyval(pb,k)-polyval(pa,k);
   noise = 4*std(f(ixfitb(ok_b))-polyval(pb,ixfitb(ok_b))');
   if sgn > 0
-    noiselimit = max(noise*0.7,0.8);
+    noiselimit = max(noise*0.6,0.7);
+    % Verified that parameters are OK in most cases
   else
-    noiselimit = max(noise*0.4,0.5);
+    noiselimit = max(noise*0.4,0.4);
+    % verified that limit 0.4 for low noise is ok.
   end
   if shift < noiselimit
     k = -6;  % Too small shift
@@ -292,8 +294,8 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
   % polyval(pa,recovery_ix) == force
   recovery_ix = (sgn*force-pa(2))/pa(1); 
   dx = px(1)*(recovery_ix-k);
-  Fdot = pb(1)/dt;
-  if abs(dx) < 5 | abs(dx) > 30
+  Fdot = sgn*pb(1)/dt;
+  if abs(dx) < 5 || abs(dx) > 30
     k = -7;   % unrealistic dx
   end
 end
