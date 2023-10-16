@@ -58,24 +58,15 @@ function s = extract_trace(filename,t,plotting)
   end
 
   index0 = interp1(t0,1:ny0,t,'nearest');
-  part = find(index0<r ,1,'last')-1;
+  part = find(index0>r ,1,'last');  % Correct4ed bug
   index = index0 - r(part); % Local index within part
   f = f0(r(part):r(part+1));
   x = x0(r(part):r(part+1));
   lines = r(part):r(part+1);   % Line numbers in file
-  % 
-  % part = find(r(:,1)<index0,1,'last');
-  % index = index0 - r(part,1) +1;  % Local index within part
-  % 
-  % f = f0(r(part,1):r(part,2));  % Force
-  % x = x0(r(part,1):r(part,2));  % Extent
-  % lines = r(part,1):r(part,2);   % Line numbers in file
   time = t0(lines);
   nu = dominant_frequency((0:length(f)-1),(f-mean(f)));
   peak_distance = 1/nu;
-  % MinPeakDistance = min(500,fix(peak_distance/2));
-  % MinPeakWidth = min(200,fix(peak_distance/5));
-  % Fails for slow pulling speeds!
+
   MinPeakDistance = fix(peak_distance/2);
   MinPeakWidth = fix(peak_distance/5);  
 
