@@ -68,7 +68,7 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
     t = data{timecol};
   else
     countscol = contains(headers,'CycleCount');
-    t = data{countscol}*cps;
+    t = data{countscol}/cps;
   end
   forcecol = contains(headers,'Y_force');
   f = -data{forcecol};
