@@ -1,5 +1,5 @@
 function s = extract_trace(filename,t,plotting)
-% Extract one tretch containing time t from measurement text file
+% Extract one trace containing time t from measurement text file
 % Inputs:
 %  file:     data file <xx>.txt.  Include the full path if the file is not
 %            in the current folder
@@ -33,7 +33,7 @@ function s = extract_trace(filename,t,plotting)
     file = char(fullfile(datafolder,filename));
     file = strrep(file,'\','/');
   end
-  [t0,f0,xx0,T] = read_experiment_file(file);
+  [t0,f0,xx0] = read_experiment_file(file);
   x0 = mean(xx0,2);
   if t < t0(1) || t > t0(end)
     error('Requested time (%.2f) is outside the file range %.2f - %.2f',t,t0(1),t0(end));
@@ -58,7 +58,7 @@ function s = extract_trace(filename,t,plotting)
   end
 
   index0 = interp1(t0,1:ny0,t,'nearest');
-  part = find(index0>r ,1,'last');  % Correct4ed bug
+  part = find(index0>r ,1,'last');  % Corrected bug
   index = index0 - r(part); % Local index within part
   f = f0(r(part):r(part+1));
   x = x0(r(part):r(part+1));
