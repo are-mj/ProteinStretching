@@ -1,6 +1,6 @@
 function slist = display_trace(tbl,xcolumn,ycolumn,fig)
 % Display the traces defined by the data tips in the current figure
-%  tbl: table from analyse_many
+%  tbl: table from analyse_file or analyse_many
 %  xcolumn: Column in tbl on x axis. Default: Deltax
 %  ycolumn: Column in tbl on y axis. Default: Force
 %  fig:     Figure.  Default: current figure.
