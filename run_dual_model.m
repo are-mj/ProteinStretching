@@ -35,7 +35,7 @@ fprintf('  Speed    Temp. Cluster Model     ΔG‡           x‡          log10
 splitforce = zeros(7,1);
 outbell = zeros(14,6);
 outdudko = zeros(14,8);
-for i = 1:7
+for i = 7
   % fit_dual(Tun,cases(i));
   fit_dual(Tre,cases(i));
 end
