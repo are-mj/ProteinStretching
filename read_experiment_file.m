@@ -23,6 +23,8 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
   %     Headers may be found in either line 1 or line 2
   %     Default temp. 20°C if neither Tlist nor COM file available. 
   %     Reads time column (header: 'time(sec)') if it exists.
+  % Version 3.1: 2023-10-26
+  %     textscan format expression can now handle any number of columns
 
   
   cps = 4000;  % CycleCounts per second
@@ -59,7 +61,8 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
 
   frewind(fid)  
   % read data from line 4 (col 1 in line 3 is often bad)
-  data = textscan(fid,'%f %f %f %f %f %f %f %f%*[^\n]','headerlines',3);
+  % data = textscan(fid,'%f %f %f %f %f %f %f %f%*[^\n]','headerlines',3);
+  data = textscan(fid,repmat('%f ',1,numel(headers)),'headerlines',3);
   fclose(fid);
 
   % Define data (column) vectors
