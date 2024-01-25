@@ -1,4 +1,4 @@
-function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
+function [Tu,Tr,f0,x0,time0,tpeaks,tvalleys] = analyse_file(file,plotting,printing)
 % Identify unfolding and refolding events from measurement text file
 %   Replaces identify_evnts.m
 % Inputs:
@@ -8,11 +8,15 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
 %  plotting: 1: show plot of force vs. counts, with transition points
 %              marked in red
 %            0: No plotting (default) 
+%  printing: 1: Print summary per file and part (default)
+%            0: No printing
 % Output:
 %  Tu,Tr: Matlab tables of Time, Deltax, Force etc. for unfold and refold
 %  f0, x0, time0:  time series of force, trap position and time
-%  tpeaks:       Times for detected force maxima. Used by findpairs
-%                  to find refold/unfold pairs
+%  tpeaks:       Times for detected force maxima. 
+%                  Useful for finding refold/unfold pairs
+%  tvalleys:     Times for detected force minima. 
+%                  Useful for finding unfold/refold pairs
 %
 % Version 1.1 2023-02-25
 % Are Mjaavatten (mjaavatt@gmail.com)
@@ -22,6 +26,7 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
 %                         Added columns Trapx, dFdx and dt to Tu and Tr. 
 % Version 1.5 2023-09-04: Automated finding large signal frequency changes
 % Version 1.6 2023-09-18: Added output tpeaks. Reduced MinPeakWidth by 17%
+% Version 1.7 2023-11-28: Added output tvalleys.f0
 
   if nargin < 1
     error('Missing input argument: file')
@@ -29,8 +34,11 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
   if nargin <2
     plotting = 0;  % No plotting unless specified
   end    
+  if nargin < 3
+    printing = 1;
+  end
 
-  % Note: 'file' may contain ful path or only the short form
+  % Note: 'file' may contain full path or only the short form
   %       'Filename' is always the short form
   [time0,f0,xx0,T,Filename] = read_experiment_file(file);  
   x0 = mean(xx0,2);
@@ -52,6 +60,7 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
   Tr = cell2table(cell(0,12),'VariableNames',{'Filename','Time','Deltax','Force','Forceshift','Trapx','Fdot','Pullingspeed','Temperature','dFdx','dt','Lineno'});
   N_traces = 0;
   tpeaks = [];
+  tvalleys = [];
 
   if plotting 
     % Show full time series in grey color as background:
@@ -88,6 +97,7 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
     [loval,lopos] = findpeaks(-f,'MinPeakDistance',MinPeakDistance,'MinPeakWidth',MinPeakWidth);
     loval = -loval;
     tpeaks = [tpeaks;time(hipos)];
+    tvalleys = [tvalleys;time(lopos)];
 
     pos = sort([hipos;lopos]); % Indices separating stretching and relaxing traces 
     N = numel(pos)-1;     % Number of separate traces
@@ -112,7 +122,11 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
       index = k1 + trace(1)-1;  
       Time = time(index);
       Lineno = index_range(index)+4;   % Line number in file
-      Temperature = T(Lineno);
+      if numel(T) > 1
+        Temperature = T(Lineno);
+      else
+        Temperature = T;
+      end
       if sign(s.f(end)-s.f(1)) == 1
         Tu = [Tu;table(Filename,Time,Deltax,Force,Forceshift,Trapx,...
           Fdot,Pullingspeed,Temperature,dFdx,dt,Lineno)];
@@ -124,8 +138,10 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
       end
     end
     ratio = (N_unfold+N_refold)/(numel(pos)-1);
-    fprintf('Part %4d: traces: %4d  Unfoldings %4d  Refoldings %4d, Ratio: %4.2f\n',...
-      part,numel(pos)-1,N_unfold,N_refold,ratio)
+    if printing
+      fprintf('Part %4d: traces: %4d  Unfoldings %4d  Refoldings %4d, Ratio: %4.2f\n',...
+        part,numel(pos)-1,N_unfold,N_refold,ratio)
+    end
 
     if plotting
       hold on;
@@ -142,8 +158,10 @@ function [Tu,Tr,f0,x0,time0,tpeaks] = analyse_file(file,plotting)
   N_unfold = size(Tu,1);
   N_refold = size(Tr,1);
   ratio = (N_unfold+N_refold)/N_traces;
-  fprintf('%s: Found %4d unfoldings and %4d refoldings in %4d traces. Ratio: %5.2f\n', ...
-    Filename,N_unfold,N_refold,N_traces,ratio);
+  if printing
+    fprintf('%s: Found %4d unfoldings and %4d refoldings in %4d traces. Ratio: %5.2f\n', ...
+      Filename,N_unfold,N_refold,N_traces,ratio);
+  end
   if plotting 
     ylim([0,55]);  % Common force range for all plots
     titlestr = sprintf(Filename);
