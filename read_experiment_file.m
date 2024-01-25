@@ -1,8 +1,8 @@
-function[t,f,xx,T,Filename] = read_experiment_file(file) 
+function [t,f,xx,T,shortname] = read_experiment_file(filename) 
 % Reads in a text file from molecular tweezers protein streching experient
-% Input: file
-%    Normally on the form <date>/xX.txt'. The full path will be supplied
-%      by datafolder.m.
+% Input: filename
+%    Normally on the form 'xx.txt' or '<subfolder>/xX.txt'. 
+%      The full path will be supplied by datafolder.m.
 %    May also include the full path.  This will override datafolder.m
 % Output:
 
@@ -29,21 +29,28 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
   
   cps = 4000;  % CycleCounts per second
 
-  file = strrep(file,'\','/');
-  if numel(regexp(file,'\/'))<2  % Short form of file 
-    file_full = fullfile(datafolder,file);
-    file_full = strrep(char(file_full),'\','/');
-  else
-    file_full = file;
+  d = dir(filename);
+  if isempty(d)  % File not found in current path
+    filename = fullfile(datafolder,filename);
+    d = dir(filename);
+    if isempty(d)
+      error('File %s nor found\n',filename)
+    end
   end
-  
-  filename_slashes = regexp(file_full,'\/');  % Position of '/' in string file
-  Filename = string(file_full(filename_slashes(end-1)+1:end));  % short file name
-
-  % Read file
-  fid = fopen(file_full);
+  filename = strrep(filename,'\','/');  % Use Unix separator
+  filename_slashes = regexp(filename,'\/');  % Position of '/' in files
+  fn = char(filename);  % Translate to character array
+  if numel(filename_slashes) < 2
+    shortname = fn;  % form: 'xx.txt' or '<subfolder>/xX.txt'
+  else
+    shortname = fn(filename_slashes(end-1)+1:end); % '<subfolder>/xX.txt'
+  end
+  shortname = string(shortname);  % Convert back to string
+																			  																			 
+  % Read filename:
+  fid = fopen(filename);
   if fid == -1
-      error('File %s not found',file)
+      error('File %s not found',filename)
   end
 
   % The headers are normally found in line 1 or 2 of the file:
@@ -78,24 +85,22 @@ function[t,f,xx,T,Filename] = read_experiment_file(file)
   xA_column = contains(headers,'A_dist-Y');
   xB_column = contains(headers,'B_dist-Y');
   xx = -[data{xA_column},data{xB_column}];  % Read both trap position columns
+  % Temperature 
+  Tbath = T_from_COM(shortname); % Temperature outside cell
+  Tlist = temperature_code(shortname); % Calibrated T when Tbath = Tlist(1,2);
+ 
+  % Read heater setting from digits 2 and 3 in the status column
   statuscolumn = contains(headers,'Status');
-  status = data{statuscolumn};
+  status = data{statuscolumn};   
+  heater_setting = floor(rem(status,1000)/10);  % Number from digits 2 and 3
+  heater_setting(status<1000) = NaN;
 
-  % Try reading temperature 
-  Tlist = temperature_code(Filename);
-  if ~isempty(Tlist)
-    % Read temperature index from digits 2 and 3 in the status column
-    T_index = floor(rem(status,1000)/10);  % Number from digits 2 and 3
-    T_index(status<1000) = NaN;
-    T = NaN(size(T_index));    
+  T = NaN(size(heater_setting)); 
+  if numel(Tlist) == 1						   
+    T = Tlist*ones(size(heater_setting));
+  else
     for ii = 1:size(Tlist,1)
-      T(T_index==Tlist(ii,1)) = Tlist(ii,2);
+      T(heater_setting==Tlist(ii,1)) = Tbath + Tlist(ii,2) - Tlist(1,2);				   
     end
-  else   
-    try
-      T = T_from_COM(file)*ones(size(f));
-    catch
-      warning('Unable to read temperatures. Uses default 20°C');
-      T = 20*ones(size(f));
-    end
+  end
 end
