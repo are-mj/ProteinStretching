@@ -1,12 +1,15 @@
 function files = Top7files
 
-% Combined files: 1 file per experiment
-% folder = 'C:\Users\mjaav_hi6z2cj\OneDrive\Data\Chile\Top7';
-% 126 files in all, 68 deemed good
+% All fies up to 20230915
 files = [    
     % "20220718/bA.txt"    % High dFdx and low Deltax
-    "20220718/cAB.txt"
-    "20220718/dAE.txt"
+    "20220718/cA.txt"
+    "20220718/cB.txt"
+    "20220718/dA.txt"
+    "20220718/dB.txt"
+    "20220718/dC.txt"
+    "20220718/dD.txt"
+    "20220718/dE.txt"
     "20220718/eA.txt"
     "20220718/fA.txt"
     "20230623/aA.txt"
@@ -130,6 +133,32 @@ files = [
 % "20230801/wA.txt"   % High dFdx and low Deltax
 % "20230801/xA.txt"   % High dFdx and low Deltax
 % "20230801/yA.txt"    % High dFdx and low Deltax
-% "20230801/zA.txt"    % High dFdx and low Deltax
+% "20230801/zA.txt"    % High dFdx and low Deltax 
+
+    "20230821/cA.txt"
+    "20230821/eA_10°.txt"
+    "20230821/eA_16°.txt"
+    "20230821/eA_23°.txt"
+    "20230821/eA_3°.txt"
+    "20230821/eB.txt"
+    "20230913/aA.txt"
+    "20230913/bA.txt"
+    "20230913/cA.txt"
+    % "20230914/aA.txt"  % Small Deltax
+    % "20230914/bA.txt"  % Small Deltax
+    "20230914/cA.txt"
+    "20230914/dA.txt"
+    % "20230914/eA.txt"
+    % "20230914/fA.txt"  % Small Deltax
+    % "20230914/gA.txt"  % Small Deltax
+    "20230914/hA.txt"
+    "20230914/jA.txt"
+    % "20230914/kA.txt"  % Too large deltax
+    "20230914/lA.txt"
+    % "20230914/uA.txt"  % Low Deltax
+    % "20230915/aA.txt"
+    % "20230915/bA.txt"   % No unfoldings
+    % "20230915/cA.txt"   % Small Deltax
+    % "20230915/dA.txt"   % small deltax
     ];
 end
