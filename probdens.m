@@ -18,9 +18,6 @@ function [pd,F,n] = probdens(force,dF)
     n = 0;
     return
   end
-  if nargin < 3
-    plotting = 0;
-  end
   edges = floor(min(force)-0.5*dF)+0.5*dF:dF:ceil(max(force) + 0.5*dF)-0.5*dF;
   F = (edges(1:end-1)+edges(2:end))'/2;
   Values = histcounts(force,edges);
