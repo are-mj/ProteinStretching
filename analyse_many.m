@@ -1,7 +1,8 @@
 function [Tun,Tre,pairs] = analyse_many(files,plotting)
 % Analyse a set of experiment data files into tables Tun and Tre
 % pairs: Row numbers in Tre and Tun for event pairs from connected
-%   release-stretch traces
+%   relax-stretch traces
+%
   if nargin < 2
     plotting = 0;
   end
