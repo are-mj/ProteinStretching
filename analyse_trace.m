@@ -25,9 +25,9 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
 %    https://www.mathworks.com/matlabcentral/fileexchange/16997-movingslope
 %    MATLAB Central File Exchange. Retrieved October 2, 2022.
 
-% Version 2.12
+% Version 2.13
 % Author: Are Mjaavatten (mjaavatt@gmail.com)
-% Date:   2023-08-30
+% Date:   2023-11-06
 
 % Change history
 % v 2.8:  Extra output: shift
@@ -36,14 +36,16 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
 % v 2.10  Added ouput: pullingspeed
 % v 2.11  Corrected typos.
 % v 2.12  Adjusted noise sensitivity
+% v 2.13  Test for too few data points
 
-%% Algortithm tuning parameters
+%% Algorithm tuning parameters
   % These parameter values are chosen by trial and error and seem to give
   % reasonable results i most cases
   algpar.minforcerange = 10;  % Discard traces where the force range is small
   algpar.minpointforfit = 3;  % Minimum number of points for linear fit
   algpar.maxsloperatio = 0.5; % Maximum ratio of slopes beore and after transition
   algpar.multiple = 0;        % Modify algorithm to handle multple transitions
+  algpar.minlength = 50;      % MInimum number of data points in trace
 
   % Transitions are unlikely near the start of a trace, so we exclude
   % potential transitions if abs(f-fstart) < algpar.dfstart
@@ -57,6 +59,9 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
   % is less that algpar.slopefrac*median(slope):
   algpar.slopefracf = 0.7;
   algpar.slopefracx = 0.8;
+
+  % Make sure all output variables are defined:
+  [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = deal(NaN);
 
 %% Handle defaults
   if nargin < 2
@@ -78,7 +83,10 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
   % Parameters for moving slope calculation and slope peak detection
   % Again, these are not set in stone and may need adjusting
   nf = numel(s.f);
-  if nf > 1000
+  if nf < algpar.minlength
+    k = -1;
+    return
+  elseif nf > 1000
     slopelength = 30;
     minpeak = 0.03;
   elseif nf > 300
@@ -90,15 +98,6 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
   end
 
 %% Preprocessing  
-  % Make sure all output variables are set:
-  force = NaN;
-  dx = NaN;
-  Fdot = NaN;
-  shift = NaN;
-  pullingspeed = NaN;
-  dFdx = NaN;
-  noise = NaN;
-
 % Make sure x>0 and f both increase or decrease together
   s.x = s.x - min(s.x);
   
@@ -215,15 +214,8 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
     check_event(ixvalley,f,start,stop,px,dt,sgn,algpar)
   % Check if the event at ixvalley is a valid transition
   % Returns k = NaN if not valid
-  force = NaN;
-  dx = NaN;
-  Fdot = NaN;
-  pa = 0;
-  pb = 0; 
-  ixfita = [];
-  ixfitb = [];
-  shift = NaN;
-  noise = NaN;
+ 
+  [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = deal(NaN);
 
   nf = numel(f);
   % Find highest f value before ixvalley
