@@ -143,3 +143,26 @@ function DGstd = Crooks_std(pdu,pdr)
   DG(isnan(DG)) = [];
   DGstd = std(DG);
 end
+
+function W = stretchwork(force,deltax,P,T,L0,simple)
+% Calcuate the work done stretching to the unfolding force
+%
+% Input:
+%  force: Unfolding force (nm)
+%  P: Persistence length (nm)
+%  T: Temperature (K)
+%  L0: Contour length (Molecule length at maximun extension) (nm)
+% simple: Do not use the improved fit to WLC
+
+  if nargin < 6
+    simple = 0;
+  end
+  x0 = 0;
+  W = zeros(size(force));
+  for i = 1:numel(force)
+    x1 = wlc_inverse(force(i),P,T,L0,simple);
+    scale = deltax(i)/x1;
+    fun = @(x) wlc(x,P,T,L0,simple);
+    W(i) = integral(fun,x0,x1)*scale;
+  end
+end
