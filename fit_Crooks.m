@@ -8,6 +8,11 @@ function [DG,DGstd] = fit_Crooks(Tun,Tre,ucases,rcases,Clusters,plotting)
 %   DGstd: Standard deviation of DG calculated by MonteCarlo simulation
 %          Time-consuming. Calculation skipped if nargout < 3
 
+% 20240209: Specified analytical search range in match.
+
+conversion = 0.1439326;  % Energy units kcal/kmol 
+% conversion = 1;           % Energy units pN×nm
+
   if nargin < 5
     plotting = 0;
   end
@@ -21,7 +26,7 @@ function [DG,DGstd] = fit_Crooks(Tun,Tre,ucases,rcases,Clusters,plotting)
   deltax_refold = Tre.Deltax(rcases.selected);
   Ws = stretchwork(f_refold,deltax_refold,P,T,L0); % Should we subtract Ws here?
   Wr = f_refold.*deltax_refold - Ws;
-  Wr_kcal = Wr*0.1439;  % Convert from nm*pN per molecule to kcal/mol
+  Wr_kcal = Wr*conversion;  % Convert energy units
   pdr = fitdist(Wr_kcal,'normal');   % Normal distribution
 
   % Unfold:
@@ -57,10 +62,11 @@ function [DG,DGstd] = fit_Crooks(Tun,Tre,ucases,rcases,Clusters,plotting)
     fu{cl} = f_unfold(Clusters(ucases.selected,cl));
     dxu{cl} = deltax_unfold(Clusters(ucases.selected,cl));
     Ws = stretchwork(fu{cl},dxu{cl},P,T,L0);
-    Wu{cl} = (fu{cl}.*dxu{cl}-Ws)*0.1439;        % Net work
+    Wu{cl} = (fu{cl}.*dxu{cl}-Ws);        % Net work
+    Wu{cl} = Wu{cl}*conversion;  % Convert energy units
     pdu{cl} = fitdist(Wu{cl},'normal');
     DG(cl) = match(pdr,pdu{cl});
-    if nargout > 2
+    if nargout > 1
       % Perform this time-consuming calculation only if needed:
       DGstd(cl) = Crooks_std(pdu{cl},pdr);
     end
@@ -82,7 +88,9 @@ function [DG,DGstd] = fit_Crooks(Tun,Tre,ucases,rcases,Clusters,plotting)
   if plotting
     set(gca,'XScale','log')
     xlim([2,200]);
-    ylim([0,0.3]);
+    if conversion < 1
+      ylim([0,0.3]);
+    end
     set(gca,'xtick',[3,10,30,100])
     legend(hh(2:2:6),legtext);
   end
@@ -97,12 +105,7 @@ end
 function DG = match(pd1,pd2)
 % Find the point where two normal distributions are equal
   fun = @(x) pdfun(pd1,x)-pdfun(pd2,x);
-  % [DG,~,exitflag] = fzero(fun,(pd1.mu+pd2.mu)/2);
-  x0 = 0;
-  while fun(x0)<0  &&  x0 < pd1.mu+pd2.mu
-    x0 = x0 + 5;
-  end
-  [DG,~,exitflag] = fzero(fun,[x0,pd1.mu+pd2.mu]);
+  [DG,~,exitflag] = fzero(fun,[pd1.mu,pd2.mu]);
   if exitflag < 0
     warning('fzero problem')
   end
