@@ -87,7 +87,13 @@ function [t,f,xx,T,shortname] = read_experiment_file(filename)
   xx = -[data{xA_column},data{xB_column}];  % Read both trap position columns
   % Temperature 
   Tbath = T_from_COM(shortname); % Temperature outside cell
+  if isempty(Tbath)
+    warning('Found no temperature in COM file. Temperatures nor read');
+  end
   Tlist = temperature_code(shortname); % Calibrated T when Tbath = Tlist(1,2);
+  if isempty(Tlist)
+    Tlist = Tbath;
+  end
  
   % Read heater setting from digits 2 and 3 in the status column
   statuscolumn = contains(headers,'Status');
