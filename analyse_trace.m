@@ -25,9 +25,9 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
 %    https://www.mathworks.com/matlabcentral/fileexchange/16997-movingslope
 %    MATLAB Central File Exchange. Retrieved October 2, 2022.
 
-% Version 2.13
+% Version 2.14
 % Author: Are Mjaavatten (mjaavatt@gmail.com)
-% Date:   2023-11-06
+% Date:   2024-02-29
 
 % Change history
 % v 2.8:  Extra output: shift
@@ -98,6 +98,14 @@ function [k,force,dx,Fdot,shift,pullingspeed,dFdx,dt,noise] = analyse_trace(s,pl
   end
 
 %% Preprocessing  
+  % Make sure all output variables are set:
+  force = NaN;
+  dx = NaN;
+  Fdot = NaN;
+  shift = NaN;
+  pullingspeed = NaN;
+  dFdx = NaN;
+  noise = NaN;
 % Make sure x>0 and f both increase or decrease together
   s.x = s.x - min(s.x);
   
@@ -216,7 +224,15 @@ function [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = ...
   % Returns k = NaN if not valid
  
   [k,force,dx,Fdot,ixfitb,pb,ixfita,pa,shift,noise] = deal(NaN);
-
+  force = NaN;
+  dx = NaN;
+  Fdot = NaN;
+  pa = 0;
+  pb = 0; 
+  ixfita = [];
+  ixfitb = [];
+  shift = NaN;
+  noise = NaN;
   nf = numel(f);
   % Find highest f value before ixvalley
   peakrange = max(ixvalley-10,1):ixvalley;
