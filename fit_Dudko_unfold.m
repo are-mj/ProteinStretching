@@ -1,4 +1,4 @@
-function [theta,theta_std,resnorm] = fit_Dudko_unfold(F,pd,T,Fdot,theta0,par)
+function [theta,theta_std,resnorm,resid] = fit_Dudko_unfold(F,pd,T,Fdot,theta0,par)
 % Fitting parameters for the DHS or CHS unfolding model
 %   DHS: Dudko, Hummer & Szabo (2006), CHS: Cossio, Hummer & Szabo (2016)
 % Input:
