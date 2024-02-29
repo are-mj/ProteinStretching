@@ -105,6 +105,9 @@ function [Tu,Tr,f0,x0,time0,tpeaks,tvalleys] = analyse_file(file,plotting,printi
     N_unfold = 0;N_refold = 0;
     for i = 1:N
       trace = pos(i):pos(i+1);
+      if numel(trace)<100
+          continue;
+      end
       s.f = f(trace);
       % The recorded x is negative. Transform so that x increases with f:
       s.x = max(x(trace))-x(trace);
