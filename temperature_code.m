@@ -252,3 +252,6 @@ function Tlist = temperature_code(file)
       break;
     end
   end
+  if isempty(Tlist)
+    warning('%s not found in file list. Temperature taken from COM file.',file);
+  end
