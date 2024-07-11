@@ -38,7 +38,7 @@ function [theta,theta_std,resnorm,resid] = fit_Dudko_unfold(F,pd,T,Fdot,theta0,p
   
   % Lower and upper parameter bounds
   lb = [0;0;-25];  %If theta(3) = log10(k)
-  ub = [500;0.9999/F(end);1];  % Make sure that 1-a*F > 0 in the proSbalility expression
+  ub = [500;0.9999/F(end);1];  % Make sure that 1-a*F > 0 in the probalility expression
   
   % Function for calculating model probabilities
   probfun = @(thetacalc,F)Dudko_unfold_probability(thetacalc,F,T,Fdot,par);
