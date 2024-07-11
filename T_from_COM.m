@@ -22,20 +22,24 @@ function T = T_from_COM(file)
   
   COMfile = [file_full(1:slashes(end)),fiber,'COM.txt'];
   
-  fid = fopen(COMfile);
-  c = textscan(fid,'%s','delimiter','\n');
-  fclose(fid);
-  lines = c{1};
-  nlines = numel(lines);
-  TB = [];
-  for j = 1:nlines
-    if contains(lines{j},'temperatureB')
-      [~,pos] = regexp(lines{j},'temperatureB =');
-      TB = [TB;str2double(lines{j}(pos+1:numel(lines{j})))];
+  try
+    fid = fopen(COMfile);
+    c = textscan(fid,'%s','delimiter','\n');
+    fclose(fid);
+    lines = c{1};
+    nlines = numel(lines);
+    TB = [];
+    for j = 1:nlines
+      if contains(lines{j},'temperatureB')
+        [~,pos] = regexp(lines{j},'temperatureB =');
+        TB = [TB;str2double(lines{j}(pos+1:numel(lines{j})))];
+      end
     end
+    T = round(mean(TB,'omitnan'),2);
+  catch
+    T = NaN;
   end
-  T = round(mean(TB,'omitnan'),2);
-  % if isnan(T)
-  %   T = 20;   % Just to choose a default
-  % end
+  if isnan(T)
+    T = 20;   % Just to choose a default
+  end
 end
