@@ -62,7 +62,7 @@ function [t,f,xx,T,shortname] = read_experiment_file(filename)
     headerline = headercell{1}{1};   
   end
   if ~contains(headerline,'X_force')
-    error('Could not find headers in lines 1 or 2 of %s',file_full)
+    error('Could not find headers in lines 1 or 2 of %s',filenamel)
   end
   headers = regexp(headerline,'\t','split');
 
